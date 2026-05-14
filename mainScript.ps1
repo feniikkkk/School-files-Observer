@@ -1,8 +1,10 @@
-# Note: Comments are written by me and function as a user-guide :)
+# Note: Comments are written by me and function as a user and personal guide :)
 
 # Detects School OneDrive automatically, alternately, a seperate path can replace this one 
 if ( $env:OneDriveCommercial ) { $pathToSchoolFolder = $env:OneDriveCommercial } 
 else { $pathToSchoolFolder = $env:OneDrive }
+#Todo: Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
+
 
 # Finds Downloads folder automatically, alternately, a seperate path can replace this one
 $watchFolderPath = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
@@ -17,14 +19,16 @@ $observer.InternalBufferSize = 64KB
 $action = {
     $path = $Event.SourceEventArgs.FullPath
     $currentFile = Get-Item -Path $path
-    if ($path -match 'M\D\D\D') { # Searches for classic Module IT Style "M**" f.E M122 
+    if ( $path -match 'M231' ) {
+        # TODO: Get Obsidian stuff into the correct Obsidian directory 
+    }
+    elseif ( $path -match 'M\d{3}' ) { # Searches for classic Module IT Style "M**" f.E M122 
+        #TODO: File collision handling 
         Move-Item $currentFile $pathToSchoolFolder -ErrorAction Stop 
         # TODO: Organization 
     }
-    if ($path -match 'M231') {
-        # TODO: Get Obsidian stuff into the correct Obsidian directory 
-    }
-    # TODO: More school-like checks
+    
+    # TODO: More school-like checks.
 }
 
 # Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
