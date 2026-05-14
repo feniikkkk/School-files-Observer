@@ -27,7 +27,7 @@ $action = {
     # TODO: More school-like checks
 }
 
-Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
+# Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
 
 # TODO: If enough time, archive system 
 
