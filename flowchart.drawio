@@ -1,0 +1,89 @@
+    <!-- STREAMING_CHUNK:Defining the start and initialization nodes... -->
+    <mxCell id="node_start" value="START: PowerShell Background Process" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+      <mxGeometry x="340" y="40" width="160" height="70" as="geometry" />
+    </mxCell>
+    
+    <mxCell id="node_init" value="Set Paths: &#xa;Downloads &amp; OneDrive" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="340" y="150" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_start" target="node_init">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- STREAMING_CHUNK:Setting up the monitoring loop... -->
+    <mxCell id="node_watcher" value="Setup FileSystemWatcher&#xa;(Event: Created/Renamed)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="340" y="250" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="edge2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_init" target="node_watcher">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- STREAMING_CHUNK:Implementing the file detection and lock logic... -->
+    <mxCell id="node_detect" value="New File Detected?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="330" y="350" width="180" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="edge3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_watcher" target="node_detect">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="node_lock" value="Is File Locked?&#xa;(Check Handle)" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="330" y="490" width="180" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="edge4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_detect" target="node_lock">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- STREAMING_CHUNK:Designing the retry mechanism for locked files... -->
+    <mxCell id="node_wait" value="Wait 2 Seconds&#xa;(Retry Loop)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="560" y="510" width="140" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="edge5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_lock" target="node_wait">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="edge6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_wait" target="node_lock">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="630" y="610" />
+          <mxPoint x="420" y="610" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- STREAMING_CHUNK:Finalizing the sorting and moving logic... -->
+    <mxCell id="node_sort" value="Check Regex:&#xa;M122 or M144?" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="340" y="640" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="edge7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_lock" target="node_sort">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="420" y="610" />
+          <mxPoint x="420" y="640" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="node_move" value="Move to Target&#xa;Module Folder" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+      <mxGeometry x="340" y="740" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="edge8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_sort" target="node_move">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="node_log" value="Log Action" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" vertex="1" parent="1">
+      <mxGeometry x="380" y="840" width="80" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="edge9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="node_move" target="node_log">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <mxCell id="edge_loopback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_log" target="node_detect">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="280" y="870" />
+          <mxPoint x="280" y="400" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

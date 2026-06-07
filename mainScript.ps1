@@ -1,10 +1,22 @@
-# Note: Comments are written by me and function as a user and personal guide :)
+# Note: Comments are written by me and function as a user/personal guide :)
 
 # Detects School OneDrive automatically, alternately, a seperate path can replace this one 
 if ( $env:OneDriveCommercial ) { $pathToSchoolFolder = $env:OneDriveCommercial } 
 else { $pathToSchoolFolder = $env:OneDrive }
-#Todo: Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
 
+#Todo: Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
+function pathFinder($keyword) {
+    $items = Get-Childitem -Path $pathToSchoolFolder
+    foreach($item in $items) {
+        if ($item.Name -match $keyword) {
+            $newPath = $item.FullName 
+            return $newPath
+        }
+    }
+
+    New-Item -Path $pathToSchoolFolder -ChildPath $keyword
+
+}
 
 # Finds Downloads folder automatically, alternately, a seperate path can replace this one
 $watchFolderPath = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
@@ -33,9 +45,13 @@ $action = {
 
 # Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
 
-# TODO: If enough time, archive system 
+# TODO: If enough time, archive-system 
 
 
 # https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_regular_expressions?view=powershell-7.6
 # https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_comparison_operators?view=powershell-7.6
 # https://stackoverflow.com/questions/57947150/where-is-the-downloads-folder-located
+# https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.host.pshostuserinterface.promptforchoice?view=powershellsdk-7.6.0
+
+# Links for ADS stuff, basically finding the origin of where a file was downloaded from
+# https://hshrzd.wordpress.com/2016/03/19/introduction-to-ads-alternate-data-streams/?source=post_page-----c0e4a2402563---------------------------------------
