@@ -1,10 +1,34 @@
 # Note: Comments are written by me and function as a user/personal guide :)
 
 # Detects School OneDrive automatically, alternately, a seperate path can replace this one 
-if ( $env:OneDriveCommercial ) { $pathToSchoolFolder = $env:OneDriveCommercial } 
-else { $pathToSchoolFolder = $env:OneDrive }
+if ($env:OneDriveCommercial) { $pathToSchoolFolder = $env:OneDriveCommercial } 
+elseif ($env:OneDrive) { $pathToSchoolFolder = $env:OneDrive }
 
-#Todo: Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
+# Message popup for inputing a personal School files path
+else {  
+    Add-Type -AssemblyName PresentationFramework, System.Windows.Forms
+    $personalPath = 'UNSET'
+    if (Test-Path $personalPath) { $pathToSchoolFolder = $personalPath}
+
+    while ($true) {
+        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.Description = "Choose a path to store your school files in"
+
+        if ($dialog.ShowDialog() -eq 'OK') {
+            if (Test-Path $dialog.SelectedPath) {
+                (Get-Content $PSCommandPath) -replace '\$SavedPath = "UNSET"', "`$SavedPath = `"$($dialog.SelectedPath)`"" | Set-Content $PSCommandPath
+                $pathToSchoolFolder = $dialog.SelectedPath
+            }
+            [System.Windows.MessageBox]::Show("The selected path is invalid or does not exist.", "Path Error", "OK", "Error")
+        }
+        else {
+            [System.Windows.MessageBox]::Show("A valid destination directory is required to proceed.", "Operation Canceled", "OK", "Warning")
+            exit
+        }
+    }
+ }
+
+# Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
 function pathFinder($keyword) {
     $items = Get-Childitem -Path $pathToSchoolFolder
     foreach($item in $items) {
@@ -55,3 +79,7 @@ $action = {
 
 # Links for ADS stuff, basically finding the origin of where a file was downloaded from
 # https://hshrzd.wordpress.com/2016/03/19/introduction-to-ads-alternate-data-streams/?source=post_page-----c0e4a2402563---------------------------------------
+
+# Message Box popup 
+# https://learn.microsoft.com/en-us/dotnet/api/system.windows.messagebox.show?view=windowsdesktop-10.0
+# https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_automatic_variables?view=powershell-7.6#pscommandpath
