@@ -53,8 +53,13 @@ $observer.EnableRaisingEvents = $true
 $observer.InternalBufferSize = 64KB  
 
 $action = {
+    
     $path = $Event.SourceEventArgs.FullPath
     $currentFile = Get-Item -Path $path
+    origin = getOrigin($path)
+    if (origin.length -gt 0) {
+
+    } 
     if ( $path -match 'M231' ) {
         # TODO: Get Obsidian stuff into the correct Obsidian directory 
     }
@@ -65,6 +70,10 @@ $action = {
     }
     
     # TODO: More school-like checks.
+}
+
+function getOrigin($path) {
+    
 }
 
 # Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
