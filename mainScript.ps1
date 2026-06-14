@@ -33,16 +33,19 @@ else {
 
 # Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
 function global:pathFinder($keyword) {
-    $items = Get-Childitem -Path $global:pathToSchoolFolder
+    if ([string]::IsNullOrWhiteSpace($keyword)) { $keyword = "Unsorted" } # **
+    $items = Get-Childitem -Path $global:pathToSchoolFolder -Directory 
+
     foreach($item in $items) {
-        if ($item.Name -match $keyword) {
-            $newPath = $item.FullName 
-            return $newPath
-        }
+        if ($item.Name -eq $keyword) { return $item.FullName }
     }
-
-    (New-Item -Path $pathToSchoolFolder -Name $keyword -ItemType Directory).FullName
-
+    foreach($item in $items) {
+        if ($item.Name -match "^$keyword\b") { return $item.FullName }
+    }
+    foreach($item in $items) {
+        if ($item.Name -match "\b$keyword\b") { return $item.FullName }
+    }
+    return (New-Item -Path $global:pathToSchoolFolder -Name $keyword -ItemType Directory).FullName
 }
 
 # Finds Downloads folder automatically, alternately, a seperate path can replace this one
