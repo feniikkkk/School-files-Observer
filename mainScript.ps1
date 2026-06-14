@@ -32,8 +32,8 @@ else {
  }
 
 # Configue correct path inside OneDrive, f.E if a folder named as the same Module exists 
-function pathFinder($keyword) {
-    $items = Get-Childitem -Path $pathToSchoolFolder
+function global:pathFinder($keyword) {
+    $items = Get-Childitem -Path $global:pathToSchoolFolder
     foreach($item in $items) {
         if ($item.Name -match $keyword) {
             $newPath = $item.FullName 
@@ -94,45 +94,53 @@ $action = {
         }
     # ** <--
         foreach ($file in $scanList) {
-            if ($file.Name -match 'M\d{3}') {
-                $origin = [regex]::Match($file.Name, "M\d{3}").Value
+            if ($file.Name -match '(?i)M\d{3}|Modul\s?\d{3}') { # * (Regex)  
+                $origin = ($Matches[0] -replace '(?i)Modul\s?', 'M').ToUpper() # **
                 break
             }
             else {
-            switch ($file.Extension) {
+                switch ($file.Extension) {
 
-                { $_ -match "\.txt|\.md"} {
-                    $text = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
-                    if ($text -match 'M\d{3}') {
-                            $origin = [regex]::Match($text, "M\d{3}").Value 
-                            break
-                    }
-                }
-                ".pptx" {
-                    $tempDirPPT = Join-Path $global:watchFolderPath "Tmp_$($file.BaseName)"
-                    Expand-Archive -Path $file.FullName -DestinationPath $tempDirPPT -Force
-                    $slides = Get-ChildItem -Path "$tempDirPPT\ppt\slides\*.xml"
-                    foreach ($slide in $slides) {
-                        $text = Get-Content $slide.FullName -Raw -ErrorAction SilentlyContinue
-                        if ($text -match 'M\d{3}') {
-                            $origin = [regex]::Match($text, "M\d{3}").Value 
+                    { $_ -match "\.txt|\.md"} {
+                        $text = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
+                        if ($text -match '(?i)M\d{3}|Modul\s?\d{3}') {
+                            $origin = ($Matches[0] -replace '(?i)Modul\s?', 'M').ToUpper()
                             break
                         }
                     }
-                    Remove-Item -Path $tempDirPPT -Recurse -Force -ErrorAction SilentlyContinue
+                    ".pptx" {
+                        $tempDirPPT = Join-Path $global:watchFolderPath "Tmp_$($file.BaseName)"
+                        $tempZip = Join-Path $global:watchFolderPath "Tmp_$($file.BaseName).zip"
 
-                    if ($origin -match 'M\d{3}') { break }
-                }
-                ".pdf" {
-                    $toolPath = Join-Path $global:scriptDir "PDFReader\pdftotext.exe"
-                    $text = & $toolPath $file.FullName -
-                    if ($text -match 'M\d{3}') {
-                            $origin = [regex]::Match($text, "M\d{3}").Value 
+                        Copy-Item -Path $file.FullName -Destination $tempZip -Force
+                        Expand-Archive -Path $tempZip -DestinationPath $tempDirPPT -Force
+
+                        try { 
+                            $slides = Get-ChildItem -Path "$tempDirPPT\ppt\slides\*.xml"
+                            foreach ($slide in $slides) {
+                                $text = Get-Content $slide.FullName -Raw -ErrorAction SilentlyContinue
+                                if ($text -match '(?i)M\d{3}|Modul\s?\d{3}') {
+                                    $origin = ($Matches[0] -replace '(?i)Modul\s?', 'M').ToUpper()
+                                    break
+                                }
+                            }
+                        } finally { # * 
+                            Remove-Item -Path $tempDirPPT -Recurse -Force -ErrorAction SilentlyContinue
+                            Remove-Item -Path $tempZip -Force -ErrorAction SilentlyContinue
+                        }
+
+                        if ($origin -match 'M\d{3}') { break }
+                    }
+                    ".pdf" {
+                        $toolPath = Join-Path $global:scriptDir "PDFReader\pdftotext.exe"
+                        $text = (& $toolPath "$($currentFile.FullName)" "-") -join " "
+                        if ($text -match '(?i)M\d{3}|Modul\s?\d{3}') {
+                            $origin = ($Matches[0] -replace '(?i)Modul\s?', 'M').ToUpper()
                             break
+                        }
                     }
                 }
             }
-        }
         }
         
         if ($origin -notmatch 'M\d{3}' -and $origin -eq "SF") { 
@@ -179,15 +187,15 @@ $action = {
 } 
 
 
-function getOrigin($path) {
+function global:getOrigin($path) {
     $zoneData = Get-Content -Path $path -Stream Zone.Identifier -ErrorAction SilentlyContinue
     $hostUrl = ($zoneData | Where-Object { $_ -match "^HostUrl="}) -replace "HostUrl=", ""
     $urlData = ($hostUrl -split "/")
     $moduleName = ""
     $isFromTeams = $false
     foreach ($data in $urlData) {
-        if ( $data -match 'M\d{3}') {
-            $moduleName = [regex]::Match($data, "M\d{3}").Value
+        if ($data -match '(?i)M\d{3}|Modul\s?\d{3}') {
+            $moduleName = ($Matches[0] -replace '(?i)Modul\s?', 'M').ToUpper()
             break
         }
         if ( $data -match 'sluz.sharepoint.com') {
@@ -209,7 +217,7 @@ function getOrigin($path) {
 
 Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
 Register-ObjectEvent -InputObject $observer -EventName 'Renamed' -Action $action
-
+Wait-Event -SourceIdentifier "Forever"
 
 # Any lines that are fully written by an Artificial Intelligence are marked with "**" 
 # Any lines that are partially written by an Artificial Intelligence are marked with "*" 
