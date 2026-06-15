@@ -1,2 +1,9 @@
+'** --> 
+Set objFSO = CreateObject("Scripting.FileSystemObject")
 Set objShell = CreateObject("WScript.Shell")
-objShell.Run "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File ""C:\Users\richa\M122Projekt\mainScript.ps1""", 0, False
+
+strScriptDir = objFSO.GetParentFolderName(WScript.ScriptFullName)
+strPSPath = strScriptDir & "\mainScript.ps1"
+
+objShell.Run "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & strPSPath & """", 0, False
+' ** <--
