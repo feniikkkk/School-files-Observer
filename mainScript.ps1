@@ -21,7 +21,7 @@ else {
             }
             [System.Windows.MessageBox]::Show("The selected path is invalid or does not exist.", "Path Error", "OK", "Error")
         }
-        else {
+        else { 
             [System.Windows.MessageBox]::Show("A valid destination directory is required to proceed.", "Operation Canceled", "OK", "Warning")
             exit
         }
@@ -55,10 +55,7 @@ $observer.InternalBufferSize = 64KB
 $action = {
     $path = $Event.SourceEventArgs.FullPath
     $currentFile = Get-Item -Path $path
-    if ( $path -match 'M231' ) {
-        # TODO: Get Obsidian stuff into the correct Obsidian directory 
-    }
-    elseif ( $path -match 'M\d{3}' ) { # Searches for classic Module IT Style "M**" f.E M122 
+    if ( $path -match 'M\d{3}' ) { # Searches for classic Module IT Style "M**" f.E M122 
         #TODO: File collision handling 
         Move-Item $currentFile $pathToSchoolFolder -ErrorAction Stop 
         # TODO: Organization 
