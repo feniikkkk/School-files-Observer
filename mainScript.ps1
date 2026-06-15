@@ -123,11 +123,15 @@ $action = {
                             foreach ($slide in $slides) {
                                 $text = Get-Content $slide.FullName -Raw -ErrorAction SilentlyContinue
                                 if ($text -match '(?i)M\d{3}|Modul\s?\d{3}') {
+                                    $text -replace '(s?)<.*?>', ''
                                     $origin = ($Matches[0] -replace '(?i)Modul\s?', 'M').ToUpper()
                                     break
                                 }
                             }
-                        } finally { # * 
+                        
+                        } catch {
+
+                        } finally { 
                             Remove-Item -Path $tempDirPPT -Recurse -Force -ErrorAction SilentlyContinue
                             Remove-Item -Path $tempZip -Force -ErrorAction SilentlyContinue
                         }
@@ -163,7 +167,7 @@ $action = {
         Remove-Item -Path $tempDir -Recurse -Force
         if ($origin -ne "Unsorted") { return }
     }
-    # File Collision Handling and M231 Unzipping 
+    # File Collision Handling 
     if ($origin.length -gt 0) {
 
         $target = pathFinder($origin)
@@ -175,16 +179,21 @@ $action = {
             $folder = Split-Path $baseTargetPath -Parent
             $name = (Get-Item $baseTargetPath).BaseName
             $ext = (Get-Item $baseTargetPath).Extension
-            $expectedPath = "$folder\$name ($counter)$ext"
-            $counter++
+            if ($name -match '\((\d+)\)') {
+               
+                $currentCounter = [int]$matches[1]
+                $newCounter = $currentCounter + 1
+                
+                $name = $name -replace '\(\d+\)', "($newCounter)"
+                $expectedPath = "$folder\$name$ext"
+            }
+            else {
+                $expectedPath = "$folder\$name ($counter)$ext"
+                $counter++
+            }
+            
         }                                                       # * <--
-    
-        Move-Item $currentFile $expectedPath -ErrorAction Stop 
-        if ($origin -eq 'M231' -and $expectedPath -match '\.zip$') {
-            $targetFolder = Split-Path $expectedPath -Parent
-            Expand-Archive -Path $expectedPath -DestinationPath $targetFolder
-            Remove-Item -Path $expectedPath -Force
-        } 
+
     }
     
 } 
@@ -220,6 +229,8 @@ function global:getOrigin($path) {
 
 Register-ObjectEvent -InputObject $observer -EventName 'Created' -Action $action
 Register-ObjectEvent -InputObject $observer -EventName 'Renamed' -Action $action
+
+# Waits for a non-existant event, so that the script never ends
 Wait-Event -SourceIdentifier "Forever"
 
 # Any lines that are fully written by an Artificial Intelligence are marked with "**" 
